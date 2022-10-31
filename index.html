@@ -278,30 +278,31 @@ const volumeRenderingFragmentSource = `#version 300 es
 
           //
           //   @TODO: Implement the front-to-back compositing here
-          //
-
-
-
-
+          //  -SLIDE 126
+          // out = (1-alpha_out) * in * alphain + color out
+          // alpha_out = (1-alpha_out) * alpha_in + alpha_out
+          // -
+          result.rgb += (1.0 - result.a) * color.rgb * color.a;
+          result.a += (1.0 - result.a ) * color.a;
         }
         else if (compositingMethod == CompositingMethodFirstHitPoint) {
           //
           //   @TODO: Implement the first hitpoint compositing here
           //
 
-
-
-
+          if(color.a > 0.1 ) {
+            result = color;
+            break;
+          }
 
         }
         else if (compositingMethod == CompositingMethodMaximumIntensityProjection) {
           //
           //   @TODO: Implement the maximum-intensity projection here
           //
-
-
-
-
+          if (color.a > result.a) {
+            result = color;
+          }
         }
       }
 
