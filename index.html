@@ -11,6 +11,8 @@
 
 
 
+
+
 //
 //   Space for some global variables
 //
@@ -468,14 +470,16 @@ function updateTransferFunction(gl, transferFunction) {
   // function.  Each value is stored sequentially (RGBA,RGBA,RGBA,...) for 256 values,
   // which get mapped to [0, 1] by OpenGL
 
-  
+  const color1 = hexToRgb(document.getElementById("color1").value);
+  const color2 = hexToRgb(document.getElementById("color2").value);
+  const color3 = hexToRgb(document.getElementById("color3").value);
+
+
   const alpha = Number(document.getElementById("alpha").value) / 100;
-  const red = Number(document.getElementById("red").value) / 100;
-  const green = Number(document.getElementById("green").value) / 100;
-  const blue = Number(document.getElementById("blue").value) / 100;
-  const power = (Number(document.getElementById("exponent").value) / 10);
-  const start = Number(document.getElementById("start").value);
+  const power = (Number(document.getElementById("exponent").value) / 10); // Power (exp) inspired by power law transfer function
+  const start = Number(document.getElementById("start").value); //
   const end = Number(document.getElementById("end").value);
+
 
   //console.log('Opacity', alpha); // In the range [0,1]
 
@@ -516,29 +520,32 @@ function updateTransferFunction(gl, transferFunction) {
   //         function editor result
 
   let i = 0;
+  
   //i = [0, 200]
   for (i = 0; i < start * 4; i += 4) {
-      data[i] =  0; //R
-      data[i + 1] = 0; //G
-      data[i + 2] = 0;  // B
-      data[i + 3] = 0; // A
+
+      const t = (i * alpha / 4);
+      data[i] =  2 * t * (color1.r); //R
+      data[i + 1] = t * color1.g; //G
+      data[i + 2] = 3 * color1.b;  // B
+      data[i + 3] = alpha; // A
   }
   
   //1024d
   for (i = start * 4; i < end * 4; i += 4) {
       const t = (i * alpha / 4);
-      data[i] = (2 * t * (red^power) ); //R *2 
-      data[i + 1] = t * (green^power); //G
-      data[i + 2] = 3 * t * (blue^power);  // B * 3
-      data[i + 3] = t / power ; // A
+      data[i] = (2 * t * (color2.r^power) ); //R *2 
+      data[i + 1] = t * (color2.g^power); //G
+      data[i + 2] = 3 * t * (color2.b^power);  // B * 3
+      data[i + 3] = t; // A
   }
 
   for (i = end * 4; i < 256 * 4; i += 4) {
       const t = (i * alpha / 4);
-      data[i] = (2 * t * (red^power) ); //R
-      data[i + 1] = t * (green^power); //G
-      data[i + 2] = 3 * t * (blue^power);  // B
-      data[i + 3] = t ^ power ; // A
+      data[i] = (2 * t * (color3.r^power) ); //R
+      data[i + 1] = t * (color3.g^power); //G
+      data[i + 2] = 3 * t * (color3.b^power);  // B
+      data[i + 3] = t; // A
   }
 
   // Upload the new data to the texture
@@ -1038,7 +1045,7 @@ function postError(msg) {
 
 
 <body onload="main();">
-
+  <link rel="stylesheet" href="Style.css" />
   <p id="error"></p>
   <canvas id="glCanvas" width="640" height="480"></canvas>
   <p>
@@ -1073,11 +1080,13 @@ function postError(msg) {
     Add some UI elements here to modify the transfer function.  As mentioned above, you need to call the function 'triggerTransferFunctionUpdate' to trigger and update of the GPU representation of the transfer function texture.  If you don't call that function, no change will be visible.
   -->
 
-  <div>Transfer function:</div>
+  <div class = "container" > 
+  <input type="color" id="color1" value="#FF0000" oninput="triggerTransferFunctionUpdate();" />
+  <input type="color" id="color2" value="#FF0000" oninput="triggerTransferFunctionUpdate();"/>
+  <input type="color" id="color3" value="#FF0000" oninput="triggerTransferFunctionUpdate();"/>
+  </div>
+
   <div> Alpha: <input type="range" min="0" max="100" value="2" class="slider" id="alpha" oninput="triggerTransferFunctionUpdate()"></div>
-  <div> Red: <input type="range" min="0" max="100" value="100" class="slider" id="red" oninput="triggerTransferFunctionUpdate();"></div>
-  <div> Green: <input type="range" min="0" max="100" value="100" class="slider" id="green" oninput="triggerTransferFunctionUpdate();"></div>
-  <div> Blue: <input type="range" min="0" max="100" value="100" class="slider" id="blue" oninput="triggerTransferFunctionUpdate();"></div>
   <div> Power: <input type="range" min="0" max="100" value="0" class="slider" id="exponent" oninput="triggerTransferFunctionUpdate();"></div>
   <div> Start: <input type="range" min="50" max="1024" value="50" class="slider" id="start" oninput="triggerTransferFunctionUpdate();"></div>
   <div> End: <input type="range" min="256" max="1024" value="256" class="slider" id="end" oninput="triggerTransferFunctionUpdate();"></div>
