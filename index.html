@@ -521,28 +521,28 @@ function updateTransferFunction(gl, transferFunction) {
   //i = [0, start]
   for (i = 0; i < start; i += 4) {
 
-      const t = (i / 4);
-      data[i] =  2 * t * (color1.r); //R
-      data[i + 1] = t * color1.g; //G
-      data[i + 2] = 3 * color1.b;  // B
-      data[i + 3] = t * alpha; // A
+      const t = (i*alpha / 4);
+      data[i] = (color1.r); //R
+      data[i + 1] = color1.g; //G
+      data[i + 2] = color1.b;  // B
+      data[i + 3] =  alpha; // A
   }
   
   // i = [start, mid]
   for (i = start; i < mid; i += 4) {
-      const t = (i  / 4);
-      data[i] = (2 * t * (color2.r^power) ); //R
+      const t = (i*alpha  / 4);
+      data[i] =  t * (color2.r^power) ; //R
       data[i + 1] = t * (color2.g^power); //G
-      data[i + 2] = 3 * t * (color2.b^power);  // B 
-      data[i + 3] = t * (alpha ^ power); // A
+      data[i + 2] = t * (color2.b^power);  // B 
+      data[i + 3] = (alpha ^ power); // A
   }
   // i = [mid, end]
   for (i = mid; i < end; i += 4) {
-      const t = (i  / 4);
-      data[i] = (2 * t * (color3.r^power) ); //R
+      const t = (i*alpha  / 4);
+      data[i] = ( t * (color3.r^power) ); //R
       data[i + 1] = t * (color3.g^power); //G
-      data[i + 2] = 3 * t * (color3.b^power);  // B
-      data[i + 3] = t * alpha; // A
+      data[i + 2] =  t * (color3.b^power);  // B
+      data[i + 3] = alpha; // A
   }
 
   // Upload the new data to the texture
@@ -1092,6 +1092,7 @@ function postError(msg) {
   <div> Start: <input type="range" min="1" max="1024" value="50" class="slider" id="start" oninput="triggerTransferFunctionUpdate();"></div>
   <div> Middle: <input type="range" min="1" max="1024" value="512" class="slider" id="mid" oninput="triggerTransferFunctionUpdate();"></div>
   <div> End: <input type="range" min="1" max="1024" value="1024" class="slider" id="end" oninput="triggerTransferFunctionUpdate();"></div>
+
   </div>
 </body>
 
