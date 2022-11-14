@@ -475,10 +475,11 @@ function updateTransferFunction(gl, transferFunction) {
   const color3 = hexToRgb(document.getElementById("color3").value);
 
 
-  const alpha = Number(document.getElementById("alpha").value) / 100;
-  const power = (Number(document.getElementById("exponent").value) / 10); // Power (exp) inspired by power law transfer function
-  const start = Number(document.getElementById("start").value); //
-  const end = Number(document.getElementById("end").value);
+  const alpha = Number(document.getElementById("alpha").value) / 100; // opacity
+  const power = Number(document.getElementById("exponent").value); //inspired by power law transfer function
+  const start = Number(document.getElementById("start").value); // start of the transfer function
+  const mid = Number(document.getElementById("mid").value); // middle of the transfer function
+  const end  =  Number(document.getElementById("end").value); // end of the transfer function
 
 
   //console.log('Opacity', alpha); // In the range [0,1]
@@ -515,37 +516,33 @@ function updateTransferFunction(gl, transferFunction) {
 
   /// End of the provided transfer function
   ////////////////////////////////////////////////////////////////////////////////////////
-
-  // @TODO:  Replace the transfer function specification above with your own transfer
-  //         function editor result
-
   let i = 0;
   
-  //i = [0, 200]
-  for (i = 0; i < start * 4; i += 4) {
+  //i = [0, start]
+  for (i = 0; i < start; i += 4) {
 
-      const t = (i * alpha / 4);
+      const t = (i / 4);
       data[i] =  2 * t * (color1.r); //R
       data[i + 1] = t * color1.g; //G
       data[i + 2] = 3 * color1.b;  // B
-      data[i + 3] = alpha; // A
+      data[i + 3] = t * alpha; // A
   }
   
-  //1024d
-  for (i = start * 4; i < end * 4; i += 4) {
-      const t = (i * alpha / 4);
-      data[i] = (2 * t * (color2.r^power) ); //R *2 
+  // i = [start, mid]
+  for (i = start; i < mid; i += 4) {
+      const t = (i  / 4);
+      data[i] = (2 * t * (color2.r^power) ); //R
       data[i + 1] = t * (color2.g^power); //G
-      data[i + 2] = 3 * t * (color2.b^power);  // B * 3
-      data[i + 3] = t; // A
+      data[i + 2] = 3 * t * (color2.b^power);  // B 
+      data[i + 3] = t * (alpha ^ power); // A
   }
-
-  for (i = end * 4; i < 256 * 4; i += 4) {
-      const t = (i * alpha / 4);
+  // i = [mid, end]
+  for (i = mid; i < end; i += 4) {
+      const t = (i  / 4);
       data[i] = (2 * t * (color3.r^power) ); //R
       data[i + 1] = t * (color3.g^power); //G
       data[i + 2] = 3 * t * (color3.b^power);  // B
-      data[i + 3] = t; // A
+      data[i + 3] = t * alpha; // A
   }
 
   // Upload the new data to the texture
@@ -1046,8 +1043,9 @@ function postError(msg) {
 
 <body onload="main();">
   <link rel="stylesheet" href="Style.css" />
+
   <p id="error"></p>
-  <canvas id="glCanvas" width="640" height="480"></canvas>
+  <canvas id="glCanvas" width="860" height="440"></canvas>
   <p>
     Rendering parameters
     <div>Step size: <input type="range" min="10" max="10000" value="1000" class="slider" id="stepSize" oninput="triggerRendering();"> </div>
@@ -1060,9 +1058,11 @@ function postError(msg) {
   </p>
   <p>
     Camera
+      <div class = "container">
       <div> r: <input type="range" min="0" max="100" value="50" class="slider" id="camera-r" oninput="triggerRendering();"></div>
       <div> phi: <input type="range" min="0" max="360" value="35" class="slider" id="camera-phi" oninput="triggerRendering();"></div>
       <div> theta: <input type="range" min="1" max="180" value="65" class="slider" id="camera-theta" oninput="triggerRendering();"></div>
+    </div>
   </p>
   <p>
     Debugging
@@ -1085,11 +1085,14 @@ function postError(msg) {
   <input type="color" id="color2" value="#FF0000" oninput="triggerTransferFunctionUpdate();"/>
   <input type="color" id="color3" value="#FF0000" oninput="triggerTransferFunctionUpdate();"/>
   </div>
+  <div class = "container" > 
+  <div> Alpha: <input type="range" min="0" max="100" value="2" class="slider" id="alpha" oninput="triggerTransferFunctionUpdate()"/> </div>
+  <div> Power: <input type="range" min="0" max="10" value="1" class="slider" id="exponent" oninput="triggerTransferFunctionUpdate();"></div>
 
-  <div> Alpha: <input type="range" min="0" max="100" value="2" class="slider" id="alpha" oninput="triggerTransferFunctionUpdate()"></div>
-  <div> Power: <input type="range" min="0" max="100" value="0" class="slider" id="exponent" oninput="triggerTransferFunctionUpdate();"></div>
-  <div> Start: <input type="range" min="50" max="1024" value="50" class="slider" id="start" oninput="triggerTransferFunctionUpdate();"></div>
-  <div> End: <input type="range" min="256" max="1024" value="256" class="slider" id="end" oninput="triggerTransferFunctionUpdate();"></div>
+  <div> Start: <input type="range" min="1" max="1024" value="50" class="slider" id="start" oninput="triggerTransferFunctionUpdate();"></div>
+  <div> Middle: <input type="range" min="1" max="1024" value="512" class="slider" id="mid" oninput="triggerTransferFunctionUpdate();"></div>
+  <div> End: <input type="range" min="1" max="1024" value="1024" class="slider" id="end" oninput="triggerTransferFunctionUpdate();"></div>
+  </div>
 </body>
 
 </html>
