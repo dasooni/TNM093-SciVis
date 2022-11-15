@@ -52,3 +52,18 @@
     border-radius: 50%;
     border: 2px solid #000;
 }
+#color4 {
+
+    -webkit-appearance: none;
+    appearance: none;
+    background-color: transparent;
+    width: 30px;
+    height: 30px;
+    border: none;
+    cursor: pointer;
+}
+
+#color4::-webkit-color-swatch  {
+    border-radius: 50%;
+    border: 2px solid #000;
+}
