@@ -473,20 +473,19 @@ function updateTransferFunction(gl, transferFunction) {
   const color1 = hexToRgb(document.getElementById("color1").value);
   const color2 = hexToRgb(document.getElementById("color2").value);
   const color3 = hexToRgb(document.getElementById("color3").value);
+  const color4 = hexToRgb(document.getElementById("color4").value);
 
 
-  const alpha = Number(document.getElementById("alpha").value) / 100; // opacity
-  const alpha2 = Number(document.getElementById("alpha2").value) / 100; // opacity2
-  const alpha3 = Number(document.getElementById("alpha3").value) / 100; // opacity3
-  const alpha4 = Number(document.getElementById("alpha4").value) / 100; // opacity4
+  let alpha = Number(document.getElementById("alpha").value); // opacity
+  let alpha2 = Number(document.getElementById("alpha2").value); // opacity2
+  let alpha3 = Number(document.getElementById("alpha3").value); // opacity3
+  let alpha4 = Number(document.getElementById("alpha4").value); // opacity4
 
   const start = Number(document.getElementById("start").value); // start of the transfer function
   const mid = Number(document.getElementById("mid").value); // middle of the transfer function
   const mid2 = Number(document.getElementById("mid2").value); // 2nd middle of the transfer function
   const end  =  Number(document.getElementById("end").value); // end of the transfer function
-
-
-  //console.log('Opacity', alpha); // In the range [0,1]
+  //console.log('Opacity', alpha); 
 
   let data = new Uint8Array(256 * 4);
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -524,50 +523,73 @@ function updateTransferFunction(gl, transferFunction) {
   //4 values / pixel
   // 256 pixels
 
-  // data is x and alpha is opacity? Linear interpolation 
+  // data is x and alpha is y (opacity) ? Linear interpolation 
 
-  
+
   //i = [0, start]
   for (let i = 0; i < start; i += 4) {
-      const t = (i / 4);
-      const x =  (t - 0) / (start - 0);
+    //const it = i / 4;
+    const x = Math.abs(i/ start); // x = (C - A) / (B - A) , C = i, A = 0, B = start
+    data[i] = color1.r; //R
+    data[i + 1] = color1.g; //G
+    data[i + 2] = color1.b; // B
+    data[i + 3] = alpha; 
 
-      data[i] = x * color1.r; //R
-      data[i + 1] = x * color1.g; //G
-      data[i + 2] = x * color1.b;  // B
-      data[i + 3] = x * alpha; // A
+    if (x <= 0.5) {
+      data[i + 3] = alpha * x/2 ; 
+    } else {
+      data[i + 3] -= alpha * x/2; 
+    }
+    
   }
+  console.log('a1', alpha); 
   
   // i = [start, mid]
-  for (let i = start; i < mid; i += 4) {
-      const t = (i / 4); 
-      const x =  (t - start) / (mid - start);
+  for (let i = start; i < mid * 4; i += 4) {
+    
+      const x =  Math.abs((i - start) / (mid - start));
+      data[i] =  color2.r; //R
+      data[i + 1] = color2.g; //G
+      data[i + 2] = color2.b; // B
+      data[i + 3] = alpha2; // A
 
-      data[i] = x * color2.r; //R
-      data[i + 1] = x * color2.g; //G
-      data[i + 2] = x * color2.b;  // B
-      data[i + 3] = x * alpha2; // A
+    if (x < 0.5) {
+      data[i + 3] =  alpha2 * x/2;
+    } else if (x > 0.5 && x <= 1) {
+      data[i + 3] -= alpha2 * x/2; // A
+    }
+      
   }
 
-  for (let i = mid; i < mid2; i += 4) {
+  for (let i = mid; i < mid2 * 4; i += 4) {
       const t = (i  / 4); 
       const x =  (t - mid) / (mid2 - mid);
+      data[i] =  color3.r; //R
+      data[i + 1] = color3.g; //G
+      data[i + 2] = color3.b; // B
+      data[i + 3] = alpha3; // A
 
-      data[i] =  x * color3.r; //R
-      data[i + 1] = x * color3.g; //G
-      data[i + 2] = x * color3.b;  // B 
-      data[i + 3] = x * alpha3; // A
+      if (x < 0.5) {
+      data[i + 3] =  alpha3 * x/2;
+    } else if (x > 0.5 && x <= 1) {
+      data[i + 3] -= alpha3 * x/2; // A
+    }
   }
   // i = [mid2, end]
-  for (let i = mid; i < end; i += 4) {
-      const t = (i  / 4); // x = [0, 1]
-      const x =  (t - mid2) / (end - mid2);
+  for (let i = mid2; i < end; i += 4) {
+      const x =  Math.abs((i - mid2) / (end - mid2));
 
-      data[i] = x * color4.r; //R
-      data[i + 1] = x * color4.g; //G
-      data[i + 2] =  x * color4.b;  // B
-      data[i + 3] =  x * alpha4; // A
+      data[i] = 2 * color4.r; //R
+      data[i + 1] = color4.g; //G
+      data[i + 2] = 3* color4.b;  // B
+      data[i + 3] =  alpha4; // A
 
+      if (x < 0.5) {
+      data[i + 3] =  alpha3 * x/2;
+    } else  {
+      data[i + 3] -= alpha3 * x/2; // A
+    }
+      // mr morale and the big steppers 
   }
 
   // Upload the new data to the texture
@@ -1107,15 +1129,15 @@ function postError(msg) {
 
   <div class = "container" > 
   <input type="color" id="color1" value="#FF0000" oninput="triggerTransferFunctionUpdate();" />
-  <input type="color" id="color2" value="#FF0000" oninput="triggerTransferFunctionUpdate();"/>
-  <input type="color" id="color3" value="#FF0000" oninput="triggerTransferFunctionUpdate();"/>
-  <input type="color" id="color4" value="#FF0000" oninput="triggerTransferFunctionUpdate();"/>
+  <input type="color" id="color2" value="#00FF00" oninput="triggerTransferFunctionUpdate();"/>
+  <input type="color" id="color3" value="#00FF00" oninput="triggerTransferFunctionUpdate();"/>
+  <input type="color" id="color4" value="0000FF" oninput="triggerTransferFunctionUpdate();"/>
   </div>
   <div class = "container" > 
-  <div> Alpha1: <input type="range" min="0" max="100" value="50" class="slider" id="alpha" oninput="triggerTransferFunctionUpdate()"/> </div>
-  <div> Alpha2: <input type="range" min="0" max="100" value="25" class="slider" id="alpha2" oninput="triggerTransferFunctionUpdate()"/> </div>
-  <div> Alpha3: <input type="range" min="0" max="100" value="25" class="slider" id="alpha3" oninput="triggerTransferFunctionUpdate()"/> </div>
-  <div> Alpha4: <input type="range" min="0" max="100" value="10" class="slider" id="alpha4" oninput="triggerTransferFunctionUpdate()"/> </div>
+  <div> Alpha1: <input type="range" min="0" max="255" value="80" class="slider" id="alpha" oninput="triggerTransferFunctionUpdate()"/> </div>
+  <div> Alpha2: <input type="range" min="0" max="255" value="80" class="slider" id="alpha2" oninput="triggerTransferFunctionUpdate()"/> </div>
+  <div> Alpha3: <input type="range" min="0" max="255" value="80" class="slider" id="alpha3" oninput="triggerTransferFunctionUpdate()"/> </div>
+  <div> Alpha4: <input type="range" min="0" max="255" value="80" class="slider" id="alpha4" oninput="triggerTransferFunctionUpdate()"/> </div>
 
   <div> Start [0,256]: <input type="range" min="0" max="256" value="256" class="slider" id="start" oninput="triggerTransferFunctionUpdate();"></div>
   <div> Middle [256,512]: <input type="range" min="256" max="512" value="512" class="slider" id="mid" oninput="triggerTransferFunctionUpdate();"></div>
