@@ -277,10 +277,9 @@ const volumeRenderingFragmentSource = `#version 300 es
           // 150 is a randomly chosen value to serve as a reference contribution
           const float ReferenceSamplingInterval = 150.0;
           color.a = 1.0 - pow(1.0 - color.a, tIncr * ReferenceSamplingInterval);
-
           //
           //   @TODO: Implement the front-to-back compositing here
-          //
+          // Lägger ihop färgerna enligt ekv. Early Ray Termination a = 1.
           result.rgb += (1.0 - result.a) * color.rgb * color.a; 
           result.a += (1.0 - result.a) * color.a;
           
@@ -289,13 +288,11 @@ const volumeRenderingFragmentSource = `#version 300 es
         else if (compositingMethod == CompositingMethodFirstHitPoint) {
           //
           //   @TODO: Implement the first hitpoint compositing here
-          //
+          // 
           if (color.a > 1.0){
               result = color;
               t = tEnd; 
             }
-
-
         }
         else if (compositingMethod == CompositingMethodMaximumIntensityProjection) {
           //
@@ -497,33 +494,52 @@ function updateTransferFunction(gl, transferFunction) {
   const alpha2 = Math.round(document.querySelector('input[name="alpha2"]').value);
   const alpha3 = Math.round(document.querySelector('input[name="alpha3"]').value);
 
-  const gradient1 = (document.querySelector('input[name="gradient1"]').value) / 100;
-
-  
+//start + range/2 = mittpunkt
+//
   let data = new Uint8Array(256 * 4);
-  let fadeRange1 = Math.round(gradient1*range1)
 
   for (let i = start1 * 4; i < (range1+start1) * 4; i += 4) {
-    const it = i / 4;
-    data[i] = colorRGB1.r*(fadeRange1/(it-start1));
-    data[i + 1] = colorRGB1.g;
-    data[i + 2] = colorRGB1.b;
-    data[i + 3] = alpha1;
-  }
+    let t = 0;
+    if(i/4 <= start1+range1/2){
+      t =  ((i/4 - start1) / (range1/2));
+    }if(i/4>start1+range1/2){
+      t = 1 -  ((i/4 - start1) / (range1/2));
+    }
+
+    data[i] += colorRGB1.r*t;
+    data[i + 1] += colorRGB1.g*t;
+    data[i + 2] += colorRGB1.b*t;
+    data[i + 3] += alpha1*t;
+    }
   
-  /*for (let i = start2 * 4; i < (range2+start2) * 4; i += 4) {
-    data[i] = colorRGB2.r;
-    data[i + 1] = colorRGB2.g;
-    data[i + 2] =  colorRGB2.b;
-    data[i + 3] = alpha2;
+  for (let i = start2 * 4; i < (range2+start2) * 4; i += 4) {
+
+    let t = 0;
+    if(i/4 <= start2+range2/2){
+      t =  ((i/4 - start2) / (range2/2));
+    }if(i/4>start2+range2/2){
+      t = 1 -  ((i/4 - start2) / (range2/2));
+    }
+
+    data[i] += colorRGB2.r*t;
+    data[i + 1] += colorRGB2.g*t;
+    data[i + 2] +=  colorRGB2.b*t;
+    data[i + 3] += alpha2*t;
   } 
 
-  for (let i = start3 * 4; i < (range3+start3) * 4;  i += 4) {    
-    data[i] = colorRGB3.r;
-    data[i + 1] = colorRGB3.g;
-    data[i + 2] = colorRGB3.b;
-    data[i + 3] = alpha3;
-  }*/
+  for (let i = start3 * 4; i < (range3+start3) * 4;  i += 4) {  
+    let t = 0;
+    if(i/4 <= start3+range3/2){
+      t =  ((i/4 - start3) / (range3/2));
+    }if(i/4>start3+range3/2){
+      t = 1 -  ((i/4 - start3) / (range3/2));
+    }
+
+    data[i] += colorRGB3.r*t;
+    data[i + 1] += colorRGB3.g*t;
+    data[i + 2] += colorRGB3.b*t;
+    data[i + 3] += alpha3*t;
+  }
 
   ////////////////////////////////////////////////////////////////////////////////////////
   /// Beginning of the provided transfer function
@@ -1076,9 +1092,6 @@ function postError(msg) {
       
       <label for="range1">Range: </label>
       <input type="range" name="range1" min="0" max="256" onchange="triggerTransferFunctionUpdate()">
-
-      <label for="range1">Gradient: </label>
-      <input type="range" name="gradient1" min="0" max="100" onchange="triggerTransferFunctionUpdate()">
     </div>
     <div class="slider2">
       <label>Color: </label>
@@ -1105,7 +1118,7 @@ function postError(msg) {
       
       <label>Range: </label>
       <input type="range" name="range3" value = '0' min="0" max="256" onchange="triggerTransferFunctionUpdate()">
-    </div>
+   </div>
   </div>
 
   <p>
