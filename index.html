@@ -545,9 +545,9 @@ function updateTransferFunction(gl, transferFunction) {
   console.log('a1', alpha); 
   
   // i = [start, mid]
-  for (let i = start; i < mid * 4; i += 4) {
-    
+  for (let i = start; i < mid; i += 4) {
       const x =  Math.abs((i - start) / (mid - start));
+
       data[i] =  color2.r; //R
       data[i + 1] = color2.g; //G
       data[i + 2] = color2.b; // B
@@ -561,10 +561,11 @@ function updateTransferFunction(gl, transferFunction) {
       
   }
 
-  for (let i = mid; i < mid2 * 4; i += 4) {
+  for (let i = mid; i < mid2; i += 4) {
       const t = (i  / 4); 
       const x =  (t - mid) / (mid2 - mid);
-      data[i] =  color3.r; //R
+
+      data[i] = color3.r; //R
       data[i + 1] = color3.g; //G
       data[i + 2] = color3.b; // B
       data[i + 3] = alpha3; // A
@@ -579,15 +580,15 @@ function updateTransferFunction(gl, transferFunction) {
   for (let i = mid2; i < end; i += 4) {
       const x =  Math.abs((i - mid2) / (end - mid2));
 
-      data[i] = 2 * color4.r; //R
+      data[i] = color4.r; //R
       data[i + 1] = color4.g; //G
-      data[i + 2] = 3* color4.b;  // B
+      data[i + 2] = color4.b;  // B
       data[i + 3] =  alpha4; // A
 
       if (x < 0.5) {
-      data[i + 3] =  alpha3 * x/2;
+      data[i + 3] =  alpha4 * x/2;
     } else  {
-      data[i + 3] -= alpha3 * x/2; // A
+      data[i + 3] -= alpha4 * x/2; // A
     }
       // mr morale and the big steppers 
   }
